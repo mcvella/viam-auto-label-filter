@@ -33,6 +33,8 @@ Note that running these models can be taxing on CPUs/GPUs, and you'll need to co
 
 Both the detector and classifier would be configured as dependencies of this camera model.
 
+Note that Viam app credentials and information about the organization, location, and part are also required, as machine resources cannot interact with the Viam app without explicit permission.
+
 ## Build and run
 
 To use this module, follow the instructions to [add a module from the Viam Registry](https://docs.viam.com/registry/configure/#add-a-modular-resource-from-the-viam-registry) and select the `rdk:camera:mcvella:camera:auto-label-filter` model from the [`mcvella:camera:auto-label-filter` module](https://app.viam.com/module/rdk/mcvella:camera:auto-label-filter).
