@@ -1,0 +1,13 @@
+{
+  "module_id": "mcvella:auto-label-filter",
+  "visibility": "public",
+  "url": "https://github.com/mcvella/viam-auto-label-filter",
+  "description": "A Viam camera filter module that uses slower AI to auto-label images to train faster ML vision models.",
+  "models": [
+    {
+      "api": "rdk:component:camera",
+      "model": "mcvella:camera:auto-label-filter"
+    }
+  ],
+  "entrypoint": "run.sh"
+}
