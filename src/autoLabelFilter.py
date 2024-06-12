@@ -34,6 +34,7 @@ from viam.logging import getLogger
 
 import re
 import io
+import asyncio
 
 LOGGER = getLogger(__name__)
 
@@ -191,18 +192,35 @@ class autoLabelFilter(Camera, Reconfigurable):
 
         im = viam_to_pil_image(cam_image)
         
+        verified_detections = []
+
         if hasattr(self, "classifier"):
             verified_detections = []
+            classify_tasks = []
+            classified_keys = {}
+            qs = []
             for detection in detections:
                 questions = self.questions_from_class(detection.class_name)
                 if len(questions) > 0:
                     cropped = im.crop((detection.x_min, detection.y_min, detection.x_max, detection.y_max))
                     for question in questions:
-                        classifications = await self.classifier.get_classifications(pil_to_viam_image(cropped, CameraMimeType.JPEG), 1, extra={"question": question["question"]})
-                        if len(classifications) and ''.join(classifications[0].class_name.split()).lower() == 'yes':
-                            detection.class_name = self.label_map[question["label"]]
-                            verified_detections.append(detection)
-            detections = verified_detections
+                        question["detection"] = detection
+                        # ensure there are no repeat queries for the same
+                        key = str(detection.x_min) + str(detection.y_min) + str(detection.x_max) + str(detection.y_max) + question["question"]
+                        if not key in classified_keys:
+                            qs.append(question)
+                            classify_tasks.append(self.classifier.get_classifications(pil_to_viam_image(cropped, CameraMimeType.JPEG), 1, extra={"question": question["question"]}))
+                            classified_keys[key] = True
+            results = await asyncio.gather(*classify_tasks)
+            q_index = 0
+            for classifications in results:
+                question = qs[q_index]
+                if len(classifications) and ''.join(classifications[0].class_name.split()).lower() == 'yes':
+                    question["detection"].class_name = self.label_map[question["label"]]
+                    verified_detections.append(question["detection"])
+                q_index = q_index + 1
+        else:
+            verified_detections = detections
 
         if from_dm_from_extra(extra):
             if not hasattr(self, "app_client"):
@@ -212,7 +230,7 @@ class autoLabelFilter(Camera, Reconfigurable):
                 # get dataset id from name
                 self.dataset_id = await self.get_dataset_id()
 
-            for d in detections:
+            for d in verified_detections:
                 buf = io.BytesIO()
                 im.save(buf, format='JPEG')
                 img_id = await self.app_client.data_client.file_upload(part_id=self.part_id, file_extension=".jpg", data=buf.getvalue())
@@ -242,7 +260,7 @@ class autoLabelFilter(Camera, Reconfigurable):
             # add bounding boxes to image for testing (when not called from data management)
             draw = ImageDraw.Draw(im)
 
-            for d in detections:
+            for d in verified_detections:
                 draw.rectangle(((d.x_min, d.y_min), (d.x_max, d.y_max)), outline="red")
                 draw.text((d.x_min + 10, d.y_min), d.class_name, fill="red")
 
