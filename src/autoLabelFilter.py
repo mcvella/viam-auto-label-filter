@@ -137,7 +137,7 @@ class autoLabelFilter(Camera, Reconfigurable):
         self.label_query = ""
         labels = config.attributes.fields["labels"].list_value
         for label in labels:
-            if isinstance(label, dict):
+            if not isinstance(label, str):
                 self.label_map[label["match"]] = label["label"]
                 self.label_query = self.label_query + f"{label["match"]}. "
             else:
