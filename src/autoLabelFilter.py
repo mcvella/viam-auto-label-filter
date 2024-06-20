@@ -155,7 +155,8 @@ class autoLabelFilter(Camera, Reconfigurable):
         self.location_id = config.attributes.fields["location_id"].string_value
         self.org_id = config.attributes.fields["org_id"].string_value
         self.dataset_name = config.attributes.fields["dataset_name"].string_value or ""
-
+        self.dataset_id = ""
+        
     def questions_from_class(self, class_name):
         class_name = class_name.replace("a ", "")
         classes = re.split('\s', class_name)
