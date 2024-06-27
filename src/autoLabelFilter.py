@@ -139,7 +139,7 @@ class autoLabelFilter(Camera, Reconfigurable):
         for label in labels:
             if not isinstance(label, str):
                 self.label_map[label["match"]] = label["label"]
-                self.label_query = self.label_query + f"{label["match"]}. "
+                self.label_query = self.label_query + f"{label['match']}. "
             else:
                 self.label_map[label] = label
                 self.label_query = self.label_query + f"{label}. "
