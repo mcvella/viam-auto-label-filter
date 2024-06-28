@@ -216,7 +216,7 @@ class autoLabelFilter(Camera, Reconfigurable):
             q_index = 0
             for classifications in results:
                 question = qs[q_index]
-                if len(classifications) and ''.join(classifications[0].class_name.split()).lower() == 'yes':
+                if len(classifications) and ''.join(classifications[0].class_name.split()).lower().replace('.','') == 'yes':
                     question["detection"].class_name = self.label_map[question["label"]]
                     verified_detections.append(question["detection"])
                 q_index = q_index + 1
