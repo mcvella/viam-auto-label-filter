@@ -67,7 +67,7 @@ On the new component panel, copy and paste the following attribute template into
   "location_id": "xyz213",
   "part_id": "mhj127",
   "app_api_key": "my_app_key",
-  "app_api_key_id": "my_api_key_id",
+  "app_api_key_id": "my_api_key_id"
 }
 ```
 
