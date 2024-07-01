@@ -245,11 +245,11 @@ class autoLabelFilter(Camera, Reconfigurable):
             for d in verified_detections:
                 await self.app_client.data_client.add_bounding_box_to_image_by_id(
                     binary_id=binary_id,
-                    label=detection.class_name,
-                    x_min_normalized=detection.x_min/width,
-                    y_min_normalized=detection.y_min/height,
-                    x_max_normalized=detection.x_max/width,
-                    y_max_normalized=detection.y_max/height
+                    label=d.class_name,
+                    x_min_normalized=d.x_min/width,
+                    y_min_normalized=d.y_min/height,
+                    x_max_normalized=d.x_max/width,
+                    y_max_normalized=d.y_max/height
                 )
 
             if self.dataset_id != "":
