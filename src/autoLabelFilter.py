@@ -159,7 +159,8 @@ class autoLabelFilter(Camera, Reconfigurable):
         
     def questions_from_class(self, class_name):
         class_name = class_name.replace("a ", "")
-        classes = re.split('\s', class_name)
+        class_name = class_name.replace(".", "")
+        classes = re.split('\\s', class_name)
         questions = []
         seen_questions = {}
         for label in self.label_map.keys():
