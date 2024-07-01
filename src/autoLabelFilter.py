@@ -224,7 +224,7 @@ class autoLabelFilter(Camera, Reconfigurable):
         else:
             verified_detections = detections
 
-        if from_dm_from_extra(extra):
+        if from_dm_from_extra(extra) and len(verified_detections) > 0:
             if not hasattr(self, "app_client"):
                 # auth to cloud for data storage
                 self.app_client = await self.viam_connect()
@@ -232,16 +232,17 @@ class autoLabelFilter(Camera, Reconfigurable):
                 # get dataset id from name
                 self.dataset_id = await self.get_dataset_id()
 
+            buf = io.BytesIO()
+            im.save(buf, format='JPEG')
+            img_id = await self.app_client.data_client.file_upload(part_id=self.part_id, file_extension=".jpg", data=buf.getvalue())
+            binary_id = BinaryID(
+                file_id=img_id,
+                organization_id=self.org_id,
+                location_id=self.location_id
+            )
+            width, height = im.size
+
             for d in verified_detections:
-                buf = io.BytesIO()
-                im.save(buf, format='JPEG')
-                img_id = await self.app_client.data_client.file_upload(part_id=self.part_id, file_extension=".jpg", data=buf.getvalue())
-                binary_id = BinaryID(
-                    file_id=img_id,
-                    organization_id=self.org_id,
-                    location_id=self.location_id
-                )
-                width, height = im.size
                 await self.app_client.data_client.add_bounding_box_to_image_by_id(
                     binary_id=binary_id,
                     label=detection.class_name,
@@ -250,10 +251,11 @@ class autoLabelFilter(Camera, Reconfigurable):
                     x_max_normalized=detection.x_max/width,
                     y_max_normalized=detection.y_max/height
                 )
-                if self.dataset_id != "":
-                    binary_ids = []
-                    binary_ids.append(binary_id)
-                    await self.app_client.data_client.add_binary_data_to_dataset_by_ids(binary_ids=binary_ids, dataset_id=self.dataset_id)
+
+            if self.dataset_id != "":
+                binary_ids = []
+                binary_ids.append(binary_id)
+                await self.app_client.data_client.add_binary_data_to_dataset_by_ids(binary_ids=binary_ids, dataset_id=self.dataset_id)
 
             # are using data management for scheduling the capture but not cloud sync,
             # as storing bounding boxes this way is not yet supported.
